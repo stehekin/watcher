@@ -1,0 +1,10 @@
+[package]
+name = "watcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+# cargo add --path ../rust_bpf/rust/lib
+bpf-lib = { version = "0.1.0", path = "../rust_bpf/rust/lib" }
+nix = { version = "0.29", features = ["fs"] }
