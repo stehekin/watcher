@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package signal;
+
+message LwCreds {
+  uint32 uid = 1;
+  uint32 gid = 2;
+  uint32 euid = 3;
+  uint32 egid = 4;
+}
+
+message LwPid {
+  uint32 pid = 1;
+  uint32 tgid = 2;
+  uint32 pid_ns = 3;
+  uint32 pid_vnr = 4;
+}
+
+message LwExec {
+  optional string filename = 1;
+  optional string interp = 2;
+  uint64 cgroup_id = 3;
+  optional string args = 4;
+  optional string env = 5;
+}
+
+message LwParent {
+  uint32 pid = 1;
+  uint32 tgid = 2;
+  uint64 boot_ns = 3;
+}
+
+message LwTask {
+  LwCreds creds = 1;
+  LwPid pid = 2;
+  LwParent parent = 3;
+  uint32 session_id = 4;
+  uint32 login_uid = 5;
+  LwExec exec = 6;
+  uint64 boot_ns = 7;
+}
+
+enum LwSignalType {
+  LW_SIGNAL_UNDEFINED = 0;
+  LW_SIGNAL_TASK = 1;
+}
+
+message LwSignalHeader {
+  uint32 version = 1; //u8 becomes uint32
+  LwSignalType signal_type = 2;
+  uint32 cpu_id = 3; //u16 becomes uint32
+  uint64 submit_time_ns = 4;
+}
+
+message LwSignalTask {
+  LwSignalHeader header = 1;
+  LwTask body = 2;
+}
