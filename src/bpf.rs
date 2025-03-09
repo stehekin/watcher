@@ -145,15 +145,12 @@ pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) 
 
     let task_sender = task_sender.clone();
     let blob_cache_clone = blob_cache.clone();
-    tokio::spawn(async move {
-        handle_signal_tasks(
-            task_sender,
-            task_receiver,
-            blob_cache_clone,
-            task_proto_sender,
-        )
-        .await;
-    });
+    tokio::spawn(handle_signal_tasks(
+        task_sender,
+        task_receiver,
+        blob_cache_clone,
+        task_proto_sender,
+    ));
 
     tokio::spawn(async move {
         loop {
