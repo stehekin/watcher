@@ -132,17 +132,20 @@ async fn handle_signal_tasks(
     }
 }
 
+// start_bpf installs the bpf programs and starts to handles ebpf events (including the blobs).
 pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) {
     let (task_sender, task_receiver) = unbounded_channel();
     let (merged_blob_sender, mut merged_blob_receiver) = unbounded_channel();
     let (exit_sender, exit_receiver) = oneshot::channel();
 
+    // Install ebpf programs.
     let run_handle = run(task_sender.clone(), merged_blob_sender, exit_receiver);
 
     let blob_cache = CacheBuilder::new(_MAX_BLOB_CACHE_SIZE)
         .eviction_policy(EvictionPolicy::lru())
         .build();
 
+    // Handling task events.
     let task_sender = task_sender.clone();
     let blob_cache_clone = blob_cache.clone();
     tokio::spawn(handle_signal_tasks(
@@ -152,6 +155,7 @@ pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) 
         task_proto_sender,
     ));
 
+    // Handling blobs.
     tokio::spawn(async move {
         loop {
             if let Some(blob) = merged_blob_receiver.recv().await {
@@ -162,7 +166,13 @@ pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) 
         }
     });
 
-    run_handle.await;
+    // Start the bpfs.
+    match run_handle.await {
+        Ok(_) => {}
+        Err(err) => {
+            log::error!("bpf programs quits abruptly: {0}", err);
+        }
+    }
 }
 
 mod test {
