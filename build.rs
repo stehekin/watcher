@@ -1,3 +1,3 @@
 fn main() {
-    prost_build::compile_protos(&["src/signal.proto"], &["src/"]).unwrap();
+    prost_build::compile_protos(&["src/signal/signal.proto"], &["src/"]).unwrap();
 }

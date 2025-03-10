@@ -1,5 +1,5 @@
-use crate::converter::*;
-use crate::signal_proto::LwSignalTask;
+use super::converter::*;
+use super::signal_proto::LwSignalTask;
 
 use bpf_lib::lw_signal_task;
 use bpf_lib::run;

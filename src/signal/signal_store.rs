@@ -1,4 +1,4 @@
-use crate::signal_proto::*;
+use super::signal_proto::*;
 
 use anyhow::Result;
 use prost::Message;
