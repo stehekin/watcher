@@ -7,8 +7,10 @@ edition = "2021"
 anyhow = "1.0"
 # cargo add --path ../rust_bpf/rust/lib
 bpf-lib = { version = "0.1.0", path = "../rust_bpf/rust/lib" }
+lazy_static = "1.5"
 moka = { version = "0.12", features = ["future"] }
 prost = "0.13"
+prost-types = "0.13"
 redb = "2.4.0"
 tokio = { version = "1.4", features = [
     "macros",
