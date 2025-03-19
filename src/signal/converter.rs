@@ -1,4 +1,5 @@
 use super::signal_proto::*;
+use anyhow::Result;
 use bpf_lib::lw_blobstr;
 
 pub(crate) fn slice_to_string(slice: &[u8]) -> String {
@@ -99,5 +100,15 @@ impl From<bpf_lib::lw_signal_task> for LwSignalTask {
             header: Some(c_signal_task.header.into()),
             body: Some(c_signal_task.body.into()),
         }
+    }
+}
+
+impl super::signal_store::HasKey for LwSignalTask {
+    fn key(&self) -> Option<String> {
+        Some(format!(
+            "{0}::{1}",
+            self.body.as_ref()?.boot_ns,
+            self.body.as_ref()?.pid?.pid,
+        ))
     }
 }
