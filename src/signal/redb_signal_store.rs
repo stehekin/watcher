@@ -1,7 +1,7 @@
 use super::signal_store::*;
 
 use anyhow::{bail, Result};
-use redb::{Database, ReadableTable, ReadableTableMetadata, TableDefinition, TableHandle};
+use redb::{Database, ReadableTable, TableDefinition};
 use std::sync::{Arc, RwLock};
 
 pub(crate) struct RedbStore {
