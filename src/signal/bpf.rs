@@ -179,9 +179,20 @@ mod test {
     use crate::signal::{
         redb_signal_store::RedbStore,
         signal_proto::LwSignalTask,
-        signal_store::{SignalStore, ENTITY_TASK_PROTO},
+        signal_store::{SignalStore, Visitor, ENTITY_TASK_PROTO},
     };
     use tokio::sync::mpsc::unbounded_channel;
+
+    struct VT {}
+
+    impl Visitor for VT {
+        fn visit<T>(&self, entity: &T)
+        where
+            T: prost::Message + Default,
+        {
+            print!("----> {:?}\n", entity)
+        }
+    }
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_start_bpf() {
@@ -195,10 +206,17 @@ mod test {
                 if let Some(t) = receiver.recv().await {
                     store.save_signal_proto(ENTITY_TASK_PROTO, &t).unwrap();
                 }
+
+                a += 1;
+                if a == 10 {
+                    break;
+                }
             }
 
-            print!("calling for_each\n");
-            store.for_each::<LwSignalTask>(ENTITY_TASK_PROTO).unwrap();
+            let v = VT {};
+            store
+                .for_each::<LwSignalTask>(ENTITY_TASK_PROTO, v)
+                .unwrap();
         });
 
         super::start_bpf(sender).await;

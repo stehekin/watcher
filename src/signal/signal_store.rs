@@ -1,12 +1,9 @@
-use super::signal_proto::LwSignalTask;
-
-use anyhow::{bail, Result};
-use prost::Message;
-use redb::{Database, ReadableTable, TableDefinition, TypeName, Value};
-use std::sync::{Arc, RwLock};
+use anyhow::Result;
 
 pub(crate) trait Visitor {
-    fn visit<T>(entity: &T);
+    fn visit<T>(&self, entity: &T)
+    where
+        T: prost::Message + Default;
 }
 
 pub(crate) trait SignalStore: Sync {
@@ -14,7 +11,7 @@ pub(crate) trait SignalStore: Sync {
     where
         T: prost::Message + HasKey;
 
-    fn for_each<T>(&self, entity_type: &str /*visitor: impl Visitor*/) -> Result<()>
+    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor) -> Result<()>
     where
         T: prost::Message + Default;
 }

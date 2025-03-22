@@ -1,5 +1,4 @@
 use super::signal_proto::*;
-use anyhow::Result;
 use bpf_lib::lw_blobstr;
 
 pub(crate) fn slice_to_string(slice: &[u8]) -> String {
