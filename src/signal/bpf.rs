@@ -177,8 +177,9 @@ pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) 
 
 mod test {
     use crate::signal::{
+        redb_signal_store::RedbStore,
         signal_proto::LwSignalTask,
-        signal_store::{RedbStore, SignalStore, ENTITY_TASK_PROTO},
+        signal_store::{SignalStore, ENTITY_TASK_PROTO},
     };
     use tokio::sync::mpsc::unbounded_channel;
 
@@ -189,11 +190,15 @@ mod test {
 
         let store = store.clone();
         tokio::spawn(async move {
+            let mut a = 1;
             loop {
                 if let Some(t) = receiver.recv().await {
-                    store.save_signal_proto(ENTITY_TASK_PROTO, &t);
+                    store.save_signal_proto(ENTITY_TASK_PROTO, &t).unwrap();
                 }
             }
+
+            print!("calling for_each\n");
+            store.for_each::<LwSignalTask>(ENTITY_TASK_PROTO).unwrap();
         });
 
         super::start_bpf(sender).await;
