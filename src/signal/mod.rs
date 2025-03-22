@@ -5,3 +5,4 @@ mod signal_proto {
 }
 mod redb_signal_store;
 mod signal_store;
+mod streamline;
