@@ -55,8 +55,10 @@ impl SignalStore for RedbStore {
             let txn = db.begin_read()?;
             let table = txn.open_table(table)?;
 
-            table.iter()?.for_each(move |v| {
+            table.iter()?.for_each(|v| {
                 if let Ok(v) = v {
+                    print!("--> {0}\n", v);
+                    /*
                     match T::decode(v.1.value()) {
                         Ok(entity) => {
                             visitor.visit(&entity);
@@ -64,7 +66,7 @@ impl SignalStore for RedbStore {
                         Err(err) => {
                             log::error!("err decoding entity {0}", err)
                         }
-                    }
+                    } */
                 }
             });
             Ok(())
