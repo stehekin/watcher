@@ -43,7 +43,7 @@ impl SignalStore for RedisStore {
         Ok(())
     }
 
-    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor)
+    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor) -> Result<()>
     where
         T: prost::Message + Default,
     {
@@ -58,8 +58,9 @@ impl SignalStore for RedisStore {
                     .and_then(|v| T::decode(v.as_slice()).map_err(anyhow::Error::msg));
                 match entity {
                     Ok(entity) => visitor.visit(Some(entity), None),
-                    Err(err) => visitor.visit::<Vec<u8>>(None, Some(err)),
+                    Err(err) => visitor.visit::<T>(None, Some(err)),
                 }
             });
+        Ok(())
     }
 }

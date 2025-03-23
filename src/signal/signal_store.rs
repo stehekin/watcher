@@ -11,7 +11,7 @@ pub(crate) trait SignalStore: Sync {
     where
         T: prost::Message + HasKey;
 
-    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor)
+    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor) -> Result<()>
     where
         T: prost::Message + Default;
 }
