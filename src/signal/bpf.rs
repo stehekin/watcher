@@ -193,6 +193,9 @@ mod test {
             if let Some(entity) = entity {
                 print!("----> {:?}\n", entity)
             }
+            if let Some(err) = error {
+                print!(">>{:?}<<\n", err)
+            }
         }
     }
 

@@ -54,8 +54,13 @@ impl SignalStore for RedisStore {
                     .pool
                     .get()
                     .map_err(anyhow::Error::msg)
-                    .and_then(|mut conn| conn.get::<String, Vec<u8>>(k).map_err(anyhow::Error::msg))
-                    .and_then(|v| T::decode(v.as_slice()).map_err(anyhow::Error::msg));
+                    .and_then(|mut conn| {
+                        conn.get::<&String, Vec<u8>>(&k).map_err(anyhow::Error::msg)
+                    })
+                    .and_then(|v| {
+                        T::decode(v.as_slice())
+                            .map_err(|e| anyhow::anyhow!("error decoding for key {0}: {1}", k, e))
+                    });
                 match entity {
                     Ok(entity) => visitor.visit(Some(entity), None),
                     Err(err) => visitor.visit::<T>(None, Some(err)),
