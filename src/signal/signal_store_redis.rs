@@ -1,11 +1,7 @@
 use super::signal_store::*;
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use redis::*;
-use std::{
-    fmt::format,
-    sync::{Arc, RwLock},
-};
 
 pub(crate) struct RedisStore {
     pool: r2d2::Pool<redis::Client>,
@@ -47,23 +43,23 @@ impl SignalStore for RedisStore {
         Ok(())
     }
 
-    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor) -> Result<()>
+    fn for_each<T>(&self, entity_type: &str, visitor: impl Visitor)
     where
         T: prost::Message + Default,
     {
         let mut conn = self.pool.get()?;
         conn.scan_match::<String, String>(format!("{0}::*", entity_type))?
             .for_each(|k| {
-                let v: Vec<u8> = self.pool.get().unwrap().get(k).unwrap();
-                match T::decode(v.as_slice()) {
-                    Ok(entity) => {
-                        visitor.visit(&entity);
-                    }
-                    Err(err) => {
-                        log::error!("err decoding entity {0}", err)
-                    }
+                let entity = self
+                    .pool
+                    .get()
+                    .map_err(anyhow::Error::msg)
+                    .and_then(|mut conn| conn.get::<String, Vec<u8>>(k).map_err(anyhow::Error::msg))
+                    .and_then(|v| T::decode(v.as_slice()).map_err(anyhow::Error::msg));
+                match entity {
+                    Ok(entity) => visitor.visit(Some(entity), None),
+                    Err(err) => visitor.visit::<Vec<u8>>(None, Some(err)),
                 }
             });
-        Ok(())
     }
 }

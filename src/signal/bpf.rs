@@ -186,11 +186,13 @@ mod test {
     struct VT {}
 
     impl Visitor for VT {
-        fn visit<T>(&self, entity: &T)
+        fn visit<T>(&self, entity: Option<T>, error: Option<anyhow::Error>)
         where
             T: prost::Message + Default,
         {
-            print!("----> {:?}\n", entity)
+            if let Some(entity) = entity {
+                print!("----> {:?}\n", entity)
+            }
         }
     }
 
