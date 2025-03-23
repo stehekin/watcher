@@ -202,34 +202,28 @@ mod test {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_start_bpf() {
         let (sender, mut receiver) = unbounded_channel::<LwSignalTask>();
-        let store = std::sync::Arc::new(RedisStore::new("127.0.0.1", 38101, "password").unwrap());
+        let store = std::sync::Arc::new(RedisStore::new("127.0.0.1", 45269, "password").unwrap());
 
-        // let store = store.clone();
-        // tokio::spawn(async move {
-        //     let mut a = 1;
-        //     loop {
-        //         if let Some(t) = receiver.recv().await {
-        //             store.save_signal_proto(ENTITY_TASK_PROTO, &t).unwrap();
-        //         }
+        let store = store.clone();
+        tokio::spawn(async move {
+            let mut a = 1;
+            loop {
+                if let Some(t) = receiver.recv().await {
+                    store.save_signal_proto(ENTITY_TASK_PROTO, &t).unwrap();
+                }
 
-        //         a += 1;
-        //         if a == 10 {
-        //             break;
-        //         }
-        //     }
+                a += 1;
+                if a == 10 {
+                    break;
+                }
+            }
 
-        //     let v = VT {};
-        //     store
-        //         .for_each::<LwSignalTask>(ENTITY_TASK_PROTO, v)
-        //         .unwrap();
-        // });
+            let v = VT {};
+            store
+                .for_each::<LwSignalTask>(ENTITY_TASK_PROTO, v)
+                .unwrap();
+        });
 
-        // super::start_bpf(sender).await;
-        //
-
-        let v = VT {};
-        store
-            .for_each::<LwSignalTask>(ENTITY_TASK_PROTO, v)
-            .unwrap();
+        super::start_bpf(sender).await;
     }
 }
