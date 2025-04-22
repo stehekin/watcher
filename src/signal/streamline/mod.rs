@@ -1,38 +1,62 @@
 use anyhow::Result;
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 
-struct Handler<T, H>
+pub trait Handler<T>
 where
     T: prost::Message + 'static,
-    H: HandlerType<T>,
 {
-    sender: UnboundedSender<T>,
-    receiver: UnboundedReceiver<T>,
-    next: Option<UnboundedSender<T>>,
-    worker: H,
+    fn handle(&self, msg: T) -> T;
 }
 
-impl<T: prost::Message, H: HandlerType<T>> Handler<T, H> {
-    fn get_sender(&self) -> UnboundedSender<T> {
-        self.sender.clone()
+#[derive(Default)]
+struct Streamline<T>
+where
+    T: prost::Message + 'static,
+{
+    handlers: Vec<Box<dyn Handler<T>>>,
+}
+
+impl<T> Streamline<T>
+where
+    T: prost::Message + 'static,
+{
+    pub(crate) fn add_handler(&mut self, handler: Box<dyn Handler<T>>) {
+        self.handlers.push(handler);
     }
 
-    pub(crate) fn connect<O: HandlerType<T>>(&mut self, other: Handler<T, O>) {
-        self.next = Some(other.get_sender());
+    pub(crate) fn process(&self, msg: T) -> T {
+        self.handlers.iter().fold(msg, |msg, cmd| cmd.handle(msg))
     }
+}
 
-    pub(crate) async fn do_work(&mut self) -> Result<()> {
-        while let Some(mut message) = self.receiver.recv().await {
-            let message = self.worker.enrich(&mut message);
-            if let Some(next) = self.next.clone() {
-                next.send(message)?
+#[cfg(test)]
+mod test {
+    use crate::signal::signal_proto::LwTask;
+    #[test]
+    fn test_streamline() {
+        struct h1 {}
+
+        impl super::Handler<LwTask> for h1 {
+            fn handle(&self, mut msg: LwTask) -> LwTask {
+                msg.boot_ns = 12345;
+                msg
             }
         }
 
-        anyhow::bail!("streamline closed")
-    }
-}
+        struct h2 {}
 
-trait HandlerType<T: prost::Message> {
-    fn enrich(&self, entity: &mut T) -> T;
+        impl super::Handler<LwTask> for h2 {
+            fn handle(&self, mut msg: LwTask) -> LwTask {
+                msg.session_id = 54321;
+                msg
+            }
+        }
+
+        let mut streamline = super::Streamline::<LwTask>::default();
+        streamline.add_handler(Box::new(h1 {}));
+        streamline.add_handler(Box::new(h2 {}));
+
+        let task = streamline.process(LwTask::default());
+        assert_eq!(task.session_id, 54321);
+        assert_eq!(task.boot_ns, 12345);
+    }
 }
