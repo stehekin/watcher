@@ -1,5 +1,3 @@
-use anyhow::Result;
-
 pub trait Handler<T>
 where
     T: prost::Message + 'static,
@@ -15,7 +13,7 @@ where
     handlers: Vec<Box<dyn Handler<T>>>,
 }
 
-impl<T> Streamline<T>
+impl<T> Pipeline<T>
 where
     T: prost::Message + 'static,
 {
