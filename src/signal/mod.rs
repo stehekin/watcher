@@ -1,8 +1,8 @@
 pub(crate) mod bpf;
 mod converter;
-mod signal_proto {
+pub(crate) mod signal_proto {
     include!(concat!(env!("OUT_DIR"), "/signal.rs"));
 }
-mod pipeline;
+pub(crate) mod pipeline;
 mod signal_store;
 mod signal_store_redis;
