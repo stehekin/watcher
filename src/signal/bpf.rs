@@ -1,8 +1,8 @@
 use super::converter::*;
 use super::signal_proto::LwSignalTask;
 
-use bpf_lib::lw_signal_task;
-use bpf_lib::run;
+use lwbpf::lw_signal_task;
+use lwbpf::run;
 use moka::future::{Cache, CacheBuilder};
 use moka::policy::EvictionPolicy;
 use std::time::Duration;

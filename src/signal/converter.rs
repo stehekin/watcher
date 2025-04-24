@@ -1,5 +1,5 @@
 use super::signal_proto::*;
-use bpf_lib::lw_blobstr;
+use lwbpf::lw_blobstr;
 
 pub(crate) fn slice_to_string(slice: &[u8]) -> String {
     let mut i = 0;
@@ -10,8 +10,8 @@ pub(crate) fn slice_to_string(slice: &[u8]) -> String {
     return String::from_utf8_lossy(&slice[..i]).to_string();
 }
 
-impl From<bpf_lib::lw_creds> for LwCreds {
-    fn from(c_creds: bpf_lib::lw_creds) -> Self {
+impl From<lwbpf::lw_creds> for LwCreds {
+    fn from(c_creds: lwbpf::lw_creds) -> Self {
         LwCreds {
             uid: c_creds.uid,
             gid: c_creds.gid,
@@ -21,8 +21,8 @@ impl From<bpf_lib::lw_creds> for LwCreds {
     }
 }
 
-impl From<bpf_lib::lw_pid> for LwPid {
-    fn from(c_pid: bpf_lib::lw_pid) -> Self {
+impl From<lwbpf::lw_pid> for LwPid {
+    fn from(c_pid: lwbpf::lw_pid) -> Self {
         LwPid {
             pid: c_pid.pid,
             tgid: c_pid.tgid,
@@ -46,8 +46,8 @@ fn convert_lwblob_str(blobstr: &lw_blobstr) -> Option<String> {
     None
 }
 
-impl From<bpf_lib::lw_exec> for LwExec {
-    fn from(c_exec: bpf_lib::lw_exec) -> Self {
+impl From<lwbpf::lw_exec> for LwExec {
+    fn from(c_exec: lwbpf::lw_exec) -> Self {
         LwExec {
             filename: convert_lwblob_str(&c_exec.filename),
             interp: convert_lwblob_str(&c_exec.interp),
@@ -58,8 +58,8 @@ impl From<bpf_lib::lw_exec> for LwExec {
     }
 }
 
-impl From<bpf_lib::lw_parent> for LwParent {
-    fn from(c_parent: bpf_lib::lw_parent) -> Self {
+impl From<lwbpf::lw_parent> for LwParent {
+    fn from(c_parent: lwbpf::lw_parent) -> Self {
         LwParent {
             pid: c_parent.pid,
             tgid: c_parent.tgid,
@@ -68,8 +68,8 @@ impl From<bpf_lib::lw_parent> for LwParent {
     }
 }
 
-impl From<bpf_lib::lw_task> for LwTask {
-    fn from(c_task: bpf_lib::lw_task) -> Self {
+impl From<lwbpf::lw_task> for LwTask {
+    fn from(c_task: lwbpf::lw_task) -> Self {
         LwTask {
             creds: Some(c_task.creds.into()),
             pid: Some(c_task.pid.into()),
@@ -82,8 +82,8 @@ impl From<bpf_lib::lw_task> for LwTask {
     }
 }
 
-impl From<bpf_lib::lw_signal_header> for LwSignalHeader {
-    fn from(c_signal_header: bpf_lib::lw_signal_header) -> Self {
+impl From<lwbpf::lw_signal_header> for LwSignalHeader {
+    fn from(c_signal_header: lwbpf::lw_signal_header) -> Self {
         LwSignalHeader {
             version: c_signal_header.version as u32,
             signal_type: LwSignalType::LwSignalTask.into(),
@@ -93,8 +93,8 @@ impl From<bpf_lib::lw_signal_header> for LwSignalHeader {
     }
 }
 
-impl From<bpf_lib::lw_signal_task> for LwSignalTask {
-    fn from(c_signal_task: bpf_lib::lw_signal_task) -> Self {
+impl From<lwbpf::lw_signal_task> for LwSignalTask {
+    fn from(c_signal_task: lwbpf::lw_signal_task) -> Self {
         LwSignalTask {
             header: Some(c_signal_task.header.into()),
             body: Some(c_signal_task.body.into()),
