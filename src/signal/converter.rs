@@ -78,6 +78,7 @@ impl From<lwbpf::lw_task> for LwTask {
             login_uid: c_task.login_uid,
             exec: Some(c_task.exec.into()),
             boot_ns: c_task.boot_ns,
+            container_id: None,
         }
     }
 }

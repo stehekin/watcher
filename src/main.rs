@@ -24,7 +24,22 @@ async fn main() {
 
         loop {
             if let Some(mut t) = receiver.recv().await {
-                pipeline.process(t);
+                let task = pipeline.process(t);
+                if let Some(cid) = &task.body.as_ref().unwrap().container_id {
+                    print!(
+                        "{0} --> {1}\n",
+                        task.body
+                            .as_ref()
+                            .unwrap()
+                            .exec
+                            .as_ref()
+                            .unwrap()
+                            .filename
+                            .as_ref()
+                            .unwrap(),
+                        cid
+                    );
+                }
             }
         }
     });

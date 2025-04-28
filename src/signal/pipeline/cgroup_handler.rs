@@ -1,8 +1,6 @@
 use crate::signal::signal_proto::LwSignalTask;
-use lwbpf::CGroupIterLoader;
-
 use anyhow::Result;
-use std::mem::MaybeUninit;
+use lwbpf::CGroupIterLoader;
 
 pub(crate) struct CGroupHandler {
     iter: CGroupIterLoader,
@@ -17,33 +15,33 @@ impl CGroupHandler {
 
 impl super::Handler<LwSignalTask> for CGroupHandler {
     fn handle(&self, mut msg: LwSignalTask) -> LwSignalTask {
-        if let Some(task) = &msg.body {
-            let cgroup_id = match &task.exec {
-                Some(exec) => exec.cgroup_id,
-                None => 0,
-            };
+        let cgroup_id = if let Some(task) = &msg.body {
+            task.exec.as_ref().map_or(0, |e| e.cgroup_id)
+        } else {
+            0
+        };
 
-            if let Some(exec) = &task.exec {
-                print!(
-                    "--> {0} \n ------------------- \n",
-                    exec.filename.as_ref().unwrap()
-                );
-            };
+        if cgroup_id == 0 {
+            return msg;
+        }
 
-            if cgroup_id == 0 {
-                return msg;
-            }
-
-            if let Ok(ancestors) = self.iter.ancestors(cgroup_id, 16) {
-                for i in ancestors {
-                    if i.id == 0 {
-                        break;
-                    }
-                    print!("{0}\t\t", i);
+        if let Ok(ancestors) = self.iter.ancestors(cgroup_id, 16) {
+            for a in ancestors {
+                if a.id == 0 {
+                    break;
                 }
-                println!("");
+                let cgroup_name = String::from_utf8_lossy(&a.name);
+                if self.is_container(&cgroup_name) {
+                    msg.body.as_mut().unwrap().container_id = Some(cgroup_name.into());
+                }
             }
         }
         msg
+    }
+}
+
+impl CGroupHandler {
+    fn is_container(&self, cgroup_name: &str) -> bool {
+        cgroup_name.starts_with("cri-containerd-")
     }
 }

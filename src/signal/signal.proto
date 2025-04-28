@@ -38,6 +38,7 @@ message LwTask {
   uint32 login_uid = 5;
   LwExec exec = 6;
   uint64 boot_ns = 7;
+  optional string container_id = 8;
 }
 
 enum LwSignalType {
