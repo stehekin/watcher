@@ -1,5 +1,6 @@
 use crate::signal::signal_proto::LwSignalTask;
 use anyhow::Result;
+use lwbpf::cgroup_ancestors;
 use lwbpf::CGroupIterLoader;
 
 pub(crate) struct CGroupHandler {
@@ -25,7 +26,7 @@ impl super::Handler<LwSignalTask> for CGroupHandler {
             return msg;
         }
 
-        if let Ok(ancestors) = self.iter.ancestors(cgroup_id, 16) {
+        if let Ok(ancestors) = cgroup_ancestors(&self.iter, cgroup_id, 16) {
             for a in ancestors {
                 if a.id == 0 {
                     break;
