@@ -2,9 +2,7 @@ use crate::signal::bpf;
 use crate::signal::pipeline::CGroupHandler;
 use crate::signal::pipeline::Pipeline;
 
-use std::time::Duration;
-use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
+use tokio::sync::mpsc::unbounded_channel;
 
 mod lock;
 mod signal;

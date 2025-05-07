@@ -5,6 +5,7 @@ use lwbpf::lw_signal_task;
 use lwbpf::run;
 use moka::future::{Cache, CacheBuilder};
 use moka::policy::EvictionPolicy;
+use nix::libc::printf;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::sync::mpsc::UnboundedReceiver;

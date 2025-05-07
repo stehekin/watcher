@@ -9,7 +9,8 @@ pub(crate) struct CGroupHandler {
 
 impl CGroupHandler {
     pub fn new() -> Result<Self> {
-        let iter = CGroupIterLoader::new()?;
+        let mut iter = CGroupIterLoader::new()?;
+        iter.load(false)?;
         Ok(Self { iter })
     }
 }
