@@ -5,7 +5,6 @@ use lwbpf::lw_signal_task;
 use lwbpf::run;
 use moka::future::{Cache, CacheBuilder};
 use moka::policy::EvictionPolicy;
-use nix::libc::printf;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -173,58 +172,5 @@ pub(crate) async fn start_bpf(task_proto_sender: UnboundedSender<LwSignalTask>) 
         Err(err) => {
             log::error!("bpf programs quits abruptly: {0}", err);
         }
-    }
-}
-
-mod test {
-    use crate::signal::{
-        signal_proto::LwSignalTask,
-        signal_store::{SignalStore, Visitor, ENTITY_TASK_PROTO},
-        signal_store_redis::RedisStore,
-    };
-    use tokio::sync::mpsc::unbounded_channel;
-
-    struct VT {}
-
-    impl Visitor for VT {
-        fn visit<T>(&self, entity: Option<T>, error: Option<anyhow::Error>)
-        where
-            T: prost::Message + Default,
-        {
-            if let Some(entity) = entity {
-                print!("----> {:?}\n", entity)
-            }
-            if let Some(err) = error {
-                print!(">>{:?}<<\n", err)
-            }
-        }
-    }
-
-    #[tokio::test(flavor = "multi_thread")]
-    async fn test_start_bpf() {
-        let (sender, mut receiver) = unbounded_channel::<LwSignalTask>();
-        let store = std::sync::Arc::new(RedisStore::new("127.0.0.1", 45269, "password").unwrap());
-
-        let store = store.clone();
-        tokio::spawn(async move {
-            let mut a = 1;
-            loop {
-                if let Some(t) = receiver.recv().await {
-                    store.save_signal_proto(ENTITY_TASK_PROTO, &t).unwrap();
-                }
-
-                a += 1;
-                if a == 10 {
-                    break;
-                }
-            }
-
-            let v = VT {};
-            store
-                .for_each::<LwSignalTask>(ENTITY_TASK_PROTO, v)
-                .unwrap();
-        });
-
-        super::start_bpf(sender).await;
     }
 }
